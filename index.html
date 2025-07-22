@@ -34,7 +34,8 @@
     }
 
     input[type="text"],
-    input[type="date"] {
+    input[type="date"],
+    input[type="time"] {
       width: 90%;
       padding: 10px;
       margin: 10px 0;
@@ -96,6 +97,7 @@
     <h2>Reagendamento de Pacientes</h2>
     <input type="text" id="nomePaciente" placeholder="Nome do Paciente" />
     <input type="date" id="dataReagendamento" />
+    <input type="time" id="horaReagendamento" />
     <br />
     <button onclick="adicionarReagendamento()">Adicionar</button>
     <div id="relatorio"></div>
@@ -114,13 +116,15 @@
     function adicionarReagendamento() {
       const nome = document.getElementById("nomePaciente").value.trim();
       const data = document.getElementById("dataReagendamento").value;
-      if (!nome || !data) {
+      const hora = document.getElementById("horaReagendamento").value;
+      if (!nome || !data || !hora) {
         alert("Preencha todos os campos!");
         return;
       }
-      lista.push({ nome, data });
+      lista.push({ nome, data, hora });
       document.getElementById("nomePaciente").value = '';
       document.getElementById("dataReagendamento").value = '';
+      document.getElementById("horaReagendamento").value = '';
       gerarRelatorio();
     }
 
@@ -132,9 +136,11 @@
     function editarPaciente(index) {
       const novoNome = prompt("Novo nome:", lista[index].nome);
       const novaData = prompt("Nova data (AAAA-MM-DD):", lista[index].data);
-      if (novoNome && novaData) {
+      const novaHora = prompt("Novo horário (HH:MM):", lista[index].hora);
+      if (novoNome && novaData && novaHora) {
         lista[index].nome = novoNome.trim();
         lista[index].data = novaData;
+        lista[index].hora = novaHora;
         gerarRelatorio();
       }
     }
@@ -155,7 +161,7 @@
         pacientes.forEach((item, i) => {
           const div = document.createElement("div");
           div.className = 'paciente-item';
-          div.innerHTML = `${i + 1}. ${item.nome} (${item.data}) <button onclick="editarPaciente(${lista.indexOf(item)})">✏️</button> <button onclick="removerPaciente(${lista.indexOf(item)})">❌</button>`;
+          div.innerHTML = `${i + 1}. ${item.nome} (${item.data} às ${item.hora}) <button onclick="editarPaciente(${lista.indexOf(item)})">✏️</button> <button onclick="removerPaciente(${lista.indexOf(item)})">❌</button>`;
           relatorioEl.appendChild(div);
         });
       };
@@ -172,9 +178,9 @@
     }
 
     function gerarExcel() {
-      const worksheetData = [["Nome do Paciente", "Data do Reagendamento"]];
+      const worksheetData = [["Nome do Paciente", "Data do Reagendamento", "Horário"]];
       lista.forEach((item) => {
-        worksheetData.push([item.nome, new Date(item.data).toLocaleDateString('pt-BR')]);
+        worksheetData.push([item.nome, new Date(item.data).toLocaleDateString('pt-BR'), item.hora]);
       });
 
       const wb = XLSX.utils.book_new();
