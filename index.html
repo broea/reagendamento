@@ -61,6 +61,7 @@
       padding: 5px;
       font-size: 22px;
       cursor: pointer;
+      box-shadow: 0 0 10px #f0f;
     }
 
     #homeBtn {
@@ -81,6 +82,11 @@
     #modoBtn {
       bottom: 10px;
       right: 10px;
+    }
+
+    #imprimirBtn {
+      bottom: 10px;
+      left: 10px;
     }
 
     .paciente-item {
@@ -104,10 +110,11 @@
   </div>
 
   <button id="modoBtn" class="icon-button" onclick="alternarModo()">🌙</button>
+  <button id="imprimirBtn" class="icon-button" onclick="window.print()">🖨️</button>
   <div style="text-align: center; position: fixed; bottom: 10px; left: 0; right: 0;">© Eduardo Salaib</div>
 
   <script>
-    let lista = [];
+    let lista = JSON.parse(localStorage.getItem("listaReagendamentos")) || [];
 
     function alternarModo() {
       document.body.classList.toggle("dark-mode");
@@ -122,6 +129,7 @@
         return;
       }
       lista.push({ nome, data, hora });
+      localStorage.setItem("listaReagendamentos", JSON.stringify(lista));
       document.getElementById("nomePaciente").value = '';
       document.getElementById("dataReagendamento").value = '';
       document.getElementById("horaReagendamento").value = '';
@@ -130,6 +138,7 @@
 
     function removerPaciente(index) {
       lista.splice(index, 1);
+      localStorage.setItem("listaReagendamentos", JSON.stringify(lista));
       gerarRelatorio();
     }
 
@@ -141,6 +150,7 @@
         lista[index].nome = novoNome.trim();
         lista[index].data = novaData;
         lista[index].hora = novaHora;
+        localStorage.setItem("listaReagendamentos", JSON.stringify(lista));
         gerarRelatorio();
       }
     }
@@ -188,6 +198,8 @@
       XLSX.utils.book_append_sheet(wb, ws, "Reagendamentos");
       XLSX.writeFile(wb, "reagendamentos.xlsx");
     }
+
+    window.onload = gerarRelatorio;
   </script>
 </body>
 </html>
