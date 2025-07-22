@@ -10,7 +10,9 @@
       --bg-claro: #ffffff;
       --bg-escuro: #000000;
       --txt-claro: #f300b4;
-      --txt-escuro: #ff0000;
+      --txt-escuro: #ffffff;
+      --borda-claro: #f300b4;
+      --borda-escuro: #ff0000;
     }
 
     body {
@@ -46,6 +48,8 @@
       position: fixed;
       top: 10px;
       left: 10px;
+      display: flex;
+      gap: 8px;
     }
 
     .icon-button {
@@ -55,7 +59,6 @@
       font-size: 22px;
       padding: 8px;
       cursor: pointer;
-      margin-right: 10px;
       color: inherit;
       box-shadow: 0 0 10px currentColor;
     }
@@ -113,12 +116,26 @@
       font-size: 12px;
       opacity: 0.6;
     }
+
+    .paciente-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 5px;
+      margin: 3px 0;
+    }
+
+    .paciente-item button {
+      padding: 5px;
+      font-size: 12px;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body class="glow">
   <header>
     <button class="icon-button" onclick="voltarHome()">🏠</button>
     <button class="icon-button" onclick="gerarRelatorio()">📋</button>
+    <button class="icon-button" onclick="window.open('https://broea.github.io/qr-code/', '_blank')">🔗</button>
   </header>
 
   <div class="container">
@@ -137,7 +154,6 @@
   </div>
 
   <button id="modoBtn" onclick="alternarModo()">🌗</button>
-
   <footer>© Eduardo Salaib</footer>
 
   <script>
@@ -165,28 +181,64 @@
 
     function gerarRelatorio() {
       const relatorioEl = document.getElementById("relatorio");
+      relatorioEl.innerHTML = '';
+
       if (lista.length === 0) {
         relatorioEl.innerText = "Nenhum reagendamento adicionado ainda.";
         return;
       }
 
-      let resumo = {};
-      lista.forEach(({ data }) => {
-        if (!resumo[data]) resumo[data] = 0;
-        resumo[data]++;
-      });
+      const hoje = new Date();
+      const amanha = new Date();
+      amanha.setDate(hoje.getDate() + 1);
 
-      let relatorio = "RELATÓRIO DE REAGENDAMENTOS\n\n";
-      lista.forEach((item, i) => {
-        relatorio += `${i + 1}. ${item.nome} - ${new Date(item.data).toLocaleDateString('pt-BR')}\n`;
-      });
+      const dataHoje = hoje.toISOString().split('T')[0];
+      const dataAmanha = amanha.toISOString().split('T')[0];
 
-      relatorio += "\nTOTAL POR DATA:\n";
-      for (const data in resumo) {
-        relatorio += `${new Date(data).toLocaleDateString('pt-BR')}: ${resumo[data]} paciente(s)\n`;
+      const hojePacientes = lista.filter(item => item.data === dataHoje);
+      const amanhaPacientes = lista.filter(item => item.data === dataAmanha);
+
+      const criarSecao = (titulo, pacientes) => {
+        const tituloEl = document.createElement("h4");
+        tituloEl.innerText = titulo;
+        relatorioEl.appendChild(tituloEl);
+
+        pacientes.forEach((item, i) => {
+          const div = document.createElement("div");
+          div.className = 'paciente-item';
+          div.innerHTML = `
+            ${i + 1}. ${item.nome}
+            <button onclick="editarPaciente(${lista.indexOf(item)})">✏️</button>
+            <button onclick="removerPaciente(${lista.indexOf(item)})">❌</button>
+          `;
+          relatorioEl.appendChild(div);
+        });
+      };
+
+      if (hojePacientes.length > 0) {
+        criarSecao(`TOTAL DE PACIENTES REAGENDADOS NO DIA DE HOJE (${hoje.toLocaleDateString('pt-BR')}): ${hojePacientes.length}`, hojePacientes);
       }
 
-      relatorioEl.innerText = relatorio;
+      if (amanhaPacientes.length > 0) {
+        criarSecao(`TOTAL DE PACIENTES REAGENDADOS PARA AMANHÃ (${amanha.toLocaleDateString('pt-BR')}): ${amanhaPacientes.length}`, amanhaPacientes);
+      }
+    }
+
+    function editarPaciente(index) {
+      const novoNome = prompt("Novo nome do paciente:", lista[index].nome);
+      const novaData = prompt("Nova data (AAAA-MM-DD):", lista[index].data);
+      if (novoNome && novaData) {
+        lista[index].nome = novoNome.trim();
+        lista[index].data = novaData;
+        gerarRelatorio();
+      }
+    }
+
+    function removerPaciente(index) {
+      if (confirm("Deseja remover este reagendamento?")) {
+        lista.splice(index, 1);
+        gerarRelatorio();
+      }
     }
 
     function baixarRelatorio() {
